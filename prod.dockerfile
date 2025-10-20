@@ -1,25 +1,4 @@
 # ====================================================================================
-# Etapa 1: Builder - Instala dependencias y construye el proyecto
-# ====================================================================================
-FROM node:20-alpine AS builder
-
-# Establece el directorio de trabajo
-WORKDIR /app
-
-# Copia los archivos de manifiesto del proyecto
-COPY package.json package-lock.json* ./
-
-# Instala todas las dependencias (incluyendo devDependencies para el build)
-RUN npm install
-
-# Copia el resto del código fuente de la aplicación
-COPY . .
-
-# Construye la aplicación. Next.js detectará automáticamente que está en
-# un entorno de producción y optimizará el build.
-RUN npm run build
-
-# ====================================================================================
 # Etapa 2: Runner - Crea la imagen final de producción
 # ====================================================================================
 FROM node:20-alpine AS runner
@@ -35,9 +14,6 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Cambia la propiedad de los directorios de la aplicación al nuevo usuario
-# Esto se hace antes de copiar los archivos para asegurar los permisos correctos
-COPY --chown=nextjs:nodejs . .
 
 # Cambia al usuario no-root para mejorar la seguridad
 USER nextjs

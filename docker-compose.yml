@@ -1,0 +1,37 @@
+# Definición de los servicios
+services:
+  # Servicio para el entorno de DESARROLLO
+  dev:
+    build:
+      context: .
+      # Apunta al Dockerfile de desarrollo (renombrado)
+      dockerfile: dev.dockerfile
+    container_name: mi-app-dev
+    environment:
+      NODE_ENV: development
+      NEXT_TURBOPACK_CACHE_PATH: /tmp/turbopack-cache
+    ports:
+      - "3000:3000"
+    # El código local se sincroniza en tiempo real con el contenedor
+    develop:
+      watch:
+        - path: ./package.json
+          action: rebuild
+        - path: ./next.config.ts
+          action: rebuild
+        - path: ./package-lock.json
+          action: rebuild
+        - path: .
+          target: /usr/src/app
+          action: sync
+
+  # Servicio para el entorno de PRODUCCIÓN
+  prod:
+    build:
+      context: .
+      # Apunta al Dockerfile de producción (renombrado)
+      dockerfile: prod.dockerfile
+    container_name: mi-app-prod
+    ports:
+      - "3000:3000"
+    # El comando se toma del CMD en prod.dockerfile

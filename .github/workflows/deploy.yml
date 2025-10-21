@@ -26,7 +26,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ toLower(github.repository) }}:latest
       - name: Deploy the app
         uses: digitalocean/app_action/deploy@v2
         env:

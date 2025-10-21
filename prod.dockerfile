@@ -1,23 +1,19 @@
 # ====================================================================================
 # Etapa 1: Dependencies - Instala todas las dependencias
 # ====================================================================================
-FROM node:20-alpine AS deps
+FROM oven/bun:alpine AS deps
 WORKDIR /app
 
-# Instala dependencias necesarias para compilación nativa
-RUN apk add --no-cache libc6-compat
-
 # Copia los archivos de dependencias
-COPY package.json package-lock.json* ./
+COPY package.json bun.lock ./
 
 # Instala TODAS las dependencias (necesarias para el build)
-RUN npm ci && \
-    npm cache clean --force
+RUN bun install --frozen-lockfile
 
 # ====================================================================================
 # Etapa 2: Builder - Compila la aplicación Next.js
 # ====================================================================================
-FROM node:20-alpine AS builder
+FROM oven/bun:alpine AS builder
 WORKDIR /app
 
 # Copia las dependencias instaladas
@@ -27,10 +23,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Deshabilita la telemetría durante el build
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Compila la aplicación con salida standalone
-RUN npm run build
+RUN bun run build
 
 # ====================================================================================
 # Etapa 3: Runner - Crea la imagen final de producción
@@ -42,7 +38,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Deshabilita la telemetría de Next.js
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Crea un usuario y grupo dedicado para ejecutar la aplicación
 RUN addgroup --system --gid 1001 nodejs && \

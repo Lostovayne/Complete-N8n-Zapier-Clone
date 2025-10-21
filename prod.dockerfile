@@ -10,8 +10,8 @@ RUN apk add --no-cache libc6-compat
 # Copia los archivos de dependencias
 COPY package.json package-lock.json* ./
 
-# Instala las dependencias
-RUN npm ci --only=production && \
+# Instala TODAS las dependencias (necesarias para el build)
+RUN npm ci && \
     npm cache clean --force
 
 # ====================================================================================

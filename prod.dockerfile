@@ -25,6 +25,9 @@ COPY . .
 # Deshabilita la telemetría durante el build
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Genera el cliente Prisma
+RUN bunx prisma generate
+
 # Compila la aplicación con salida standalone
 RUN bun run build
 
@@ -42,7 +45,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Crea un usuario y grupo dedicado para ejecutar la aplicación
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+  adduser --system --uid 1001 nextjs
 
 # Copia los artefactos de la compilación 'standalone' desde la etapa 'builder'
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -50,6 +53,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copia la carpeta 'public' si existe
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# --- Copiar el cliente Prisma generado y la carpeta prisma si se requiere en runtime ---
+# Esto asegura que lib/generated (client + binarios) esté presente en la imagen final.
+COPY --from=builder --chown=nextjs:nodejs /app/lib/generated ./lib/generated
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 # Cambia al usuario no-root para mejorar la seguridad
 USER nextjs
